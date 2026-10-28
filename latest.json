@@ -1,10 +1,10 @@
 {
     "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  11,
-    "versionName":  "0.1.10-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.10-dev/HikingAndroid-0.1.10-dev.apk",
-    "sha256":  "a8b5e4f287c9797c8eb060e59815cc0b4bd5a7aeab9229835410d7be7fb75f01",
-    "sizeBytes":  84165555,
+    "versionCode":  12,
+    "versionName":  "0.1.11-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.11-dev/HikingAndroid-0.1.11-dev.apk",
+    "sha256":  "4ef2e31008201fb20be5a8f81cbed814f2938ddca47d7a96b972cac76c9a4aae",
+    "sizeBytes":  84233960,
     "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "0.1.10 mountain GPX catalog and direct course import"
+    "notes":  "0.1.11 GPX ZIP waypoint compatibility and rest detection fixes"
 }
