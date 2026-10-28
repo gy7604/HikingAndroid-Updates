@@ -1,10 +1,10 @@
 {
     "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  8,
-    "versionName":  "0.1.7-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.7-dev/HikingAndroid-0.1.7-dev.apk",
-    "sha256":  "3e2597663178b54c4c98a32055f7a52e9680b161feaa76521a29be16dc82b8d5",
-    "sizeBytes":  84100015,
+    "versionCode":  9,
+    "versionName":  "0.1.8-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.8-dev/HikingAndroid-0.1.8-dev.apk",
+    "sha256":  "50358a0ff37761fab8d303b94b723bbc47ee3a4e0a4401d8aad181e8cc2cd674",
+    "sizeBytes":  84132783,
     "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "0.1.7 등산 코스 검색 및 관리"
+    "notes":  "0.1.8 in-app online hiking course search"
 }
