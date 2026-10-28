@@ -1,10 +1,10 @@
 {
     "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  6,
-    "versionName":  "0.1.5-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.5-dev/HikingAndroid-0.1.5-dev.apk",
-    "sha256":  "f577d14810ebc39cf5278ad0b4e2b004f7b105b4550cd48fb3ffbcd9c1878fa4",
-    "sizeBytes":  83575480,
+    "versionCode":  7,
+    "versionName":  "0.1.6-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.6-dev/HikingAndroid-0.1.6-dev.apk",
+    "sha256":  "a707aea5bf74cf5ed28407a055622f6f38a286ffe6707c2aa9955ed9ad6d7787",
+    "sizeBytes":  84034479,
     "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "나의기록 상세 화면 추가: 이동 경로 지도, 출발·도착점, 거리, 고도 및 시간 분석"
+    "notes":  "갤럭시 워치 심박수 연동 1단계"
 }
