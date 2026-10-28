@@ -1,10 +1,10 @@
 {
     "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  7,
-    "versionName":  "0.1.6-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.6-dev/HikingAndroid-0.1.6-dev.apk",
-    "sha256":  "a707aea5bf74cf5ed28407a055622f6f38a286ffe6707c2aa9955ed9ad6d7787",
-    "sizeBytes":  84034479,
+    "versionCode":  8,
+    "versionName":  "0.1.7-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.7-dev/HikingAndroid-0.1.7-dev.apk",
+    "sha256":  "3e2597663178b54c4c98a32055f7a52e9680b161feaa76521a29be16dc82b8d5",
+    "sizeBytes":  84100015,
     "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "갤럭시 워치 심박수 연동 1단계"
+    "notes":  "0.1.7 등산 코스 검색 및 관리"
 }
