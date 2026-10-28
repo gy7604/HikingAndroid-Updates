@@ -1,0 +1,10 @@
+{
+    "packageName":  "com.gy7604.hiking.dev",
+    "versionCode":  5,
+    "versionName":  "0.1.4-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.4-dev/HikingAndroid-0.1.4-dev.apk",
+    "sha256":  "d78f6bfe43b6cfc9ef25517fa41886f068b0f39d12c44df048a4c44047c1a11f",
+    "sizeBytes":  83509944,
+    "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
+    "notes":  "0.1.4-dev baseline release. Update server is ready."
+}
