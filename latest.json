@@ -1,10 +1,10 @@
 {
     "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  9,
-    "versionName":  "0.1.8-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.8-dev/HikingAndroid-0.1.8-dev.apk",
-    "sha256":  "50358a0ff37761fab8d303b94b723bbc47ee3a4e0a4401d8aad181e8cc2cd674",
+    "versionCode":  10,
+    "versionName":  "0.1.9-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.9-dev/HikingAndroid-0.1.9-dev.apk",
+    "sha256":  "ed9efbf5e1881f57f48951f690d185a21608e216c8fd1bbaebff9a500cd9e9e2",
     "sizeBytes":  84132783,
     "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "0.1.8 in-app online hiking course search"
+    "notes":  "0.1.9 online course search HTTP 502 recovery"
 }
