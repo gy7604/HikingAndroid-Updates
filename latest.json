@@ -1,10 +1,10 @@
 {
     "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  12,
-    "versionName":  "0.1.11-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.11-dev/HikingAndroid-0.1.11-dev.apk",
-    "sha256":  "4ef2e31008201fb20be5a8f81cbed814f2938ddca47d7a96b972cac76c9a4aae",
-    "sizeBytes":  84233960,
+    "versionCode":  13,
+    "versionName":  "0.1.12-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.12-dev/HikingAndroid-0.1.12-dev.apk",
+    "sha256":  "34df5a452e253b6da5994b8f75fe7e6da91cf16c51532e00904819c7198e94d9",
+    "sizeBytes":  84181939,
     "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "0.1.11 GPX ZIP waypoint compatibility and rest detection fixes"
+    "notes":  "GPX ZIP 30MB support, streaming parser, Baegunsan route import fix"
 }
