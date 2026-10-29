@@ -1,10 +1,10 @@
 {
     "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  21,
-    "versionName":  "0.1.20-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.20-dev/HikingAndroid-0.1.20-dev.apk",
-    "sha256":  "311320627dc871a961ff0290fc2d3eae7668a91c894943de613c485c5587b710",
-    "sizeBytes":  89497974,
+    "versionCode":  23,
+    "versionName":  "0.1.22-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.22-dev/HikingAndroid-0.1.22-dev.apk",
+    "sha256":  "e6286ae69050a8d98a100c112a0bd2b95ef863494fbd291c244a7f90b553195f",
+    "sizeBytes":  89497970,
     "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "Premium hiking dashboard, activity statistics and record details."
+    "notes":  "Mint floating status Snackbar, animated toggle dashboard; hiking data and original GPS tracking preserved."
 }
