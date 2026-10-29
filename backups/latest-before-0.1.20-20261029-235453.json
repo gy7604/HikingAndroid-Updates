@@ -1,0 +1,10 @@
+{
+    "packageName":  "com.gy7604.hiking.dev",
+    "versionCode":  15,
+    "versionName":  "0.1.14-dev",
+    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.14-dev/HikingAndroid-0.1.14-dev.apk",
+    "sha256":  "3e1d171282bca76c31cd8a8665272f00082f8bad7fae4b2a5f04267e3d1a8689",
+    "sizeBytes":  84280243,
+    "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
+    "notes":  "0.1.14: Improved hiking map UI, solid blue planned routes, red GPS tracks, larger map and activity statistics cards"
+}
