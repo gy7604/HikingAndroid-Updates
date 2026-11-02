@@ -1,10 +1,10 @@
 {
-    "packageName":  "com.gy7604.hiking.dev",
-    "versionCode":  23,
-    "versionName":  "0.1.22-dev",
-    "apkUrl":  "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.22-dev/HikingAndroid-0.1.22-dev.apk",
-    "sha256":  "e6286ae69050a8d98a100c112a0bd2b95ef863494fbd291c244a7f90b553195f",
-    "sizeBytes":  89497970,
-    "signingCertSha256":  "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
-    "notes":  "Mint floating status Snackbar, animated toggle dashboard; hiking data and original GPS tracking preserved."
+  "packageName": "com.gy7604.hiking.dev",
+  "versionCode": 27,
+  "versionName": "0.1.26-dev",
+  "apkUrl": "https://github.com/gy7604/HikingAndroid-Updates/releases/download/v0.1.26-dev/HikingAndroid-0.1.26-dev.apk",
+  "sha256": "4b93b3be4383686da71fa9976b35aa2631b10dac8fb5c967d4d12dfbac3cd970",
+  "sizeBytes": 154283655,
+  "signingCertSha256": "9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d",
+  "notes": "현재활동 탭의 ‘내 위치’ 아래에 ‘저장한 코스’ 버튼을 추가했습니다. 선택한 코스 전체를 지도에서 볼 수 있으며 네이버 지도와 기존 지도를 모두 지원합니다.\n전국 산림청 자료 2,932개 산 항목과 광양 지역 코스를 포함합니다. 모든 실제 산의 수록이나 최신 통행 가능 여부를 보장하는 자료는 아닙니다.\n지리산 대용량 GPX 처리를 개선했고, 앱 내 업데이트 APK 허용 크기를 512MiB로 높였습니다. 이번 APK는 약 154.3MB로 이전 버전의 200MiB 제한에도 맞습니다.\n기존 산행·코스·GPS·심박 기록을 초기화하는 변경은 없습니다. 이 APK는 ARM64 기기용입니다.\n단위 테스트 96개와 APK 서명·SHA-256을 검증했습니다. 새 버튼의 실제 휴대폰 동작은 아직 검증하지 않았습니다."
 }
