@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: sangil-owner-approved-publication
+  group: ${{ github.actor == 'gy7604' && github.event.issue.number == 1 && startsWith(github.event.comment.body, '/sangil-publish approve ') && 'sangil-owner-approved-publication' || format('sangil-file-ignored-{0}', github.run_id) }}
   cancel-in-progress: false
 jobs:
   publish:
@@ -18,21 +18,26 @@ jobs:
       github.event.comment.created_at == github.event.comment.updated_at &&
       startsWith(github.event.comment.body, '/sangil-publish approve ') &&
       vars.SANGIL_PUBLICATION_ENABLED == 'true' &&
+      !github.event.issue.pull_request &&
       github.event.issue.number == 1 &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 341359199c132a108990efa6532ea34c28bfd096
+          ref: 0b707e82462899809900dcfd6408636210d1d6dc
           persist-credentials: false
           sparse-checkout: tools/release-control
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -45,4 +50,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SANGIL_PUBLICATION_ENABLED: ${{ vars.SANGIL_PUBLICATION_ENABLED }}
           SANGIL_PUBLICATION_ISSUE: '1'
+          PUBLISHER_CONTROLLER_SHA: 0b707e82462899809900dcfd6408636210d1d6dc
         run: python -B tools/release-control/sangil_publish.py --event "$GITHUB_EVENT_PATH"

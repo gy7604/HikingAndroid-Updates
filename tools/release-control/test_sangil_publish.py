@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import sangil_publish as sp
 
 
@@ -36,7 +36,7 @@ class PublisherTests(unittest.TestCase):
             for name,data in (extras or {}).items(): z.writestr(name,data)
     def refresh_request(self):
         self.outer=hashlib.sha256((self.root/'approved.zip').read_bytes()).hexdigest()
-        self.event['comment']['body']=f'/sangil-publish approve build-1 {"a"*40} 28 {self.digest} {"c"*40} {self.outer} https://download.oaiusercontent.com/files/example\n\n승인한 변경 내용'
+        self.event['comment']['body']=f'/sangil-publish approve build-1 {"a"*40} 28 {self.digest} {"c"*40} {self.outer} sealed-v1\n\n승인한 변경 내용'
         self.request=sp.validate_event(self.event,self.now,42)
     def verify(self,path):
         self.assertEqual(path.read_bytes(),self.apk)
@@ -167,5 +167,39 @@ class PublisherTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):self.publish(read=unknown)
         self.assertFalse(self.release['draft']);self.assertIsNone(self.saved)
 
+
+    def test_plaintext_private_file_reference_in_approval_is_rejected(self):
+        changed=copy.deepcopy(self.event)
+        changed['comment']['body']=changed['comment']['body'].replace('sealed-v1','https://synthetic.oaiusercontent.com/files/fake')
+        with self.assertRaises(ValueError):
+            sp.validate_event(changed,self.now,42)
+    def test_sealed_request_contains_no_private_reference(self):
+        self.assertEqual(self.request['delivery'],'sealed-v1')
+        self.assertNotIn('url',self.request)
+    def test_private_transport_uses_a_captured_pipe_and_sanitizes_failures(self):
+        fake='https://synthetic.oaiusercontent.com/files/fake'
+        completed=Mock(returncode=0,stdout=json.dumps({'url':fake}))
+        with patch.object(sp.subprocess,'run',return_value=completed) as run:
+            self.assertEqual(sp.receive_file_url(self.event,self.request,1),fake)
+            args,kwargs=run.call_args
+            self.assertNotIn(fake,str(args))
+            self.assertTrue(kwargs['capture_output'])
+            self.assertEqual(kwargs['timeout'],205)
+        with patch.object(sp.subprocess,'run',return_value=Mock(returncode=1,stdout=fake,stderr=fake)):
+            with self.assertRaises(ValueError) as stopped:
+                sp.receive_file_url(self.event,self.request,1)
+            self.assertNotIn(fake,str(stopped.exception))
+    def test_private_transport_rejects_other_issues_and_bad_urls(self):
+        with self.assertRaises(ValueError):
+            sp.receive_file_url(self.event,self.request,42)
+        for value in [{'url':'https://evil.test/files/fake'},{'url':'https://synthetic.oaiusercontent.com/files/fake','extra':True}]:
+            with patch.object(sp.subprocess,'run',return_value=Mock(returncode=0,stdout=json.dumps(value))):
+                with self.assertRaises(ValueError):sp.receive_file_url(self.event,self.request,1)
+
+    def test_private_file_reference_in_notes_is_also_rejected(self):
+        changed=copy.deepcopy(self.event)
+        changed['comment']['body']+='\nhttps://synthetic.oaiusercontent.com/files/fake'
+        with self.assertRaises(ValueError):
+            sp.validate_event(changed,self.now,42)
 
 if __name__=='__main__':unittest.main()

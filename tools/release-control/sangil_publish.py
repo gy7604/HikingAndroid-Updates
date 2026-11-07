@@ -51,15 +51,16 @@ def validate_event(event, now, issue_number):
             or type(c.get('id')) is not int or c['id'] < 1
             or c.get('created_at') != c.get('updated_at')):
         raise ValueError('Dedicated original owner approval required')
+    if 'oaiusercontent.com' in c.get('body', '').lower():
+        raise ValueError('Private file addresses are never accepted in public approval text')
     stamp = int(datetime.fromisoformat(c['created_at'].replace('Z', '+00:00')).timestamp())
     if not 0 <= now - stamp <= 900:
         raise ValueError('Approval expired or in the future')
-    m = re.fullmatch(r'/sangil-publish approve ([A-Za-z0-9_-]{1,100}) ([a-f0-9]{40}) ([1-9][0-9]{0,8}) ([a-f0-9]{64}) ([a-f0-9]{40}) ([a-f0-9]{64}) (https://[^\s]+)\n\n([^\x00-\x08\x0b\x0c\x0e-\x1f]{1,3000})', c.get('body', ''))
+    m = re.fullmatch(r'/sangil-publish approve ([A-Za-z0-9_-]{1,100}) ([a-f0-9]{40}) ([1-9][0-9]{0,8}) ([a-f0-9]{64}) ([a-f0-9]{40}) ([a-f0-9]{64}) (sealed-v1)\n\n([^\x00-\x08\x0b\x0c\x0e-\x1f]{1,3000})', c.get('body', ''))
     if not m:
         raise ValueError('Exact candidate, baseline and release notes approval required')
-    file_url(m[7])
     return dict(requestId=m[1], snapshotSha=m[2], versionCode=int(m[3]), apkSha256=m[4],
-                baselineBlobSha=m[5], outerSha256=m[6], url=m[7], notes=m[8], commentId=c['id'])
+                baselineBlobSha=m[5], outerSha256=m[6], delivery=m[7], notes=m[8], commentId=c['id'])
 
 
 def verify_native_apk(path, sdk):
@@ -260,6 +261,21 @@ def publish(event, request, issue_number, root, verify_apk, read=api, run_gh=gh,
                 sha256=candidate['sha256'], published=True, installed=False, rebuilt=False)
 
 
+def receive_file_url(event, request, issue_number):
+    if issue_number != 1:
+        raise ValueError('Existing Sangil publication issue required')
+    helper = Path(__file__).with_name('sealed_file_transfer.mjs')
+    result = subprocess.run(['node', str(helper), '--receive-private-pipe'],
+        input=json.dumps(dict(appId='sangil', event=event, requestId=request['requestId'])),
+        capture_output=True, text=True, encoding='utf-8', errors='strict', timeout=205)
+    if result.returncode or len(result.stdout) > 13000:
+        raise ValueError('Private file transfer stopped; no automatic retry')
+    payload = json.loads(result.stdout)
+    if not isinstance(payload, dict) or set(payload) != {'url'}:
+        raise ValueError('Private file transfer payload rejected')
+    return file_url(payload['url'])
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--event', required=True)
@@ -273,7 +289,8 @@ def main():
     request = validate_event(event, int(time.time()), number)
     with tempfile.TemporaryDirectory(prefix='approved-sangil-publication-') as folder:
         root = Path(folder)
-        with urllib.request.build_opener(NoRedirect).open(urllib.request.Request(file_url(request['url']),
+        private_file_url = receive_file_url(event, request, number)
+        with urllib.request.build_opener(NoRedirect).open(urllib.request.Request(private_file_url,
              headers={'User-Agent': 'OwnerApprovedSangilPublisher/1'}), timeout=60) as response, (root / 'approved.zip').open('xb') as out:
             size = 0
             while chunk := response.read(1024 * 1024):
