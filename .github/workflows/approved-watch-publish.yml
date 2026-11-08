@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 22d65065497a1a90ea18fb0671aefa9fb5bbc24a
+          ref: 78290283d844073addf9b903592820c8a6ab414d
           persist-credentials: false
           sparse-checkout: tools/release-control
       - uses: actions/setup-python@v5
@@ -50,6 +50,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SANGIL_WATCH_PUBLICATION_ENABLED: ${{ vars.SANGIL_WATCH_PUBLICATION_ENABLED }}
           SANGIL_WATCH_PUBLICATION_ISSUE: '4'
-          PUBLISHER_CONTROLLER_SHA: 22d65065497a1a90ea18fb0671aefa9fb5bbc24a
+          PUBLISHER_CONTROLLER_SHA: 78290283d844073addf9b903592820c8a6ab414d
         run: python -B tools/release-control/sangil_watch_publish.py --event "$GITHUB_EVENT_PATH"
 
