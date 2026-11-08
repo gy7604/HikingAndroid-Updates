@@ -1,0 +1,55 @@
+# Owner requests only. Publication remains disabled until separately enabled.
+name: Owner-approved existing Sangil watch APK
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.actor == 'gy7604' && github.event.issue.number == 4 && startsWith(github.event.comment.body, '/sangil-watch-publish approve ') && 'sangil-owner-approved-publication' || format('sangil-file-ignored-{0}', github.run_id) }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'gy7604/HikingAndroid-Updates' &&
+      github.actor == 'gy7604' &&
+      github.event.issue.user.login == 'gy7604' &&
+      github.event.issue.title == 'SANGIL-WATCH-PUBLICATION-CONTROL-v1' &&
+      github.event.comment.created_at == github.event.comment.updated_at &&
+      startsWith(github.event.comment.body, '/sangil-watch-publish approve ') &&
+      vars.SANGIL_WATCH_PUBLICATION_ENABLED == 'true' &&
+      !github.event.issue.pull_request &&
+      github.event.issue.number == 4 &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 22d65065497a1a90ea18fb0671aefa9fb5bbc24a
+          persist-credentials: false
+          sparse-checkout: tools/release-control
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: build-tools;35.0.0
+      - name: Verify and publish approved existing bytes without building or installing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SANGIL_WATCH_PUBLICATION_ENABLED: ${{ vars.SANGIL_WATCH_PUBLICATION_ENABLED }}
+          SANGIL_WATCH_PUBLICATION_ISSUE: '4'
+          PUBLISHER_CONTROLLER_SHA: 22d65065497a1a90ea18fb0671aefa9fb5bbc24a
+        run: python -B tools/release-control/sangil_watch_publish.py --event "$GITHUB_EVENT_PATH"
+
