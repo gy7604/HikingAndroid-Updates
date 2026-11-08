@@ -71,6 +71,17 @@ class WatchPublisherTests(unittest.TestCase):
         self.assertTrue(all(x[2]['make_latest']=='false' and x[2]['prerelease'] is True for x in self.writes()))
         self.assertFalse(any(x[0]=='PUT' for x in self.calls))
         self.assertEqual(w.watch_inventory([self.release])[1],32)
+    def test_github_crlf_release_bodies_keep_original_inventory_binding(self):
+        original=self.api
+        def api(path,method='GET',body=None):
+            value=original(path,method,body)
+            if method=='POST' and self.release:
+                self.release['body']=self.release['body'].replace('\n','\r\n')
+                value=copy.deepcopy(self.release)
+            return value
+        self.assertTrue(self.publish(read=api)['published'])
+        self.assertEqual(w.watch_inventory([self.release])[1],32)
+        self.assertIn('\r\n',self.release['body'])
     def test_phone_issue_or_command_and_edited_approval_are_rejected(self):
         for edit in [lambda e:e['issue'].update(number=1),lambda e:e['issue'].update(title='SANGIL-PUBLICATION-CONTROL-v1'),
             lambda e:e['comment'].update(body=e['comment']['body'].replace('/sangil-watch-publish','/sangil-publish')),
@@ -143,9 +154,10 @@ class WatchPublisherTests(unittest.TestCase):
                 with patch.object(w.subprocess,'run',side_effect=outputs),patch.object(w.ssl,'PEM_cert_to_DER_cert',return_value=b'synthetic'):
                     return w.verify_native_apk(self.root/'fixture.apk',sdk)
             self.assertEqual(verify(metadata)['nativeAbis'],['arm64-v8a','armeabi-v7a'])
+            self.assertEqual(verify(metadata.replace("uses-feature:", "  uses-feature:"))['watchHardwareFeature'], True)
+            self.assertEqual(verify(metadata.replace("uses-feature:", "\tuses-feature:"))['watchHardwareFeature'], True)
             for bad in [metadata.replace(w.ACTIVITY,'phone.MainActivity'),metadata.replace('uses-feature:','uses-feature-not-required:'),
                 metadata.replace(" 'armeabi-v7a'",""),metadata.replace("'armeabi-v7a'","'unknown'")]:
                 with self.assertRaises(ValueError):verify(bad)
 
 if __name__=='__main__':unittest.main()
-

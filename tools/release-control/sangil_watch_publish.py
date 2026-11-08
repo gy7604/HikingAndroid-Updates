@@ -16,6 +16,11 @@ CERT='9b76be478ce899ab17caba5282606b08d7f6feba074a94e9790017db2b77a69d'
 MAX=512*1024*1024
 MARKER='SANGIL_WATCH_MANIFEST_V1'
 
+def canonical_lines(value):
+    if not isinstance(value, str):
+        raise ValueError('Exact text metadata required')
+    return value.replace('\r\n', '\n')
+
 def validate_event(event, now, issue_number):
     i, c = event.get('issue', {}), event.get('comment', {})
     if (type(issue_number) is not int or issue_number != 4 or event.get('action') != 'created'
@@ -32,7 +37,7 @@ def validate_event(event, now, issue_number):
     stamp = int(datetime.fromisoformat(c['created_at'].replace('Z', '+00:00')).timestamp())
     if not 0 <= now - stamp <= 900:
         raise ValueError('Approval expired or in the future')
-    m = re.fullmatch(r'/sangil-watch-publish approve ([A-Za-z0-9_-]{1,100}) ([a-f0-9]{40}) ([1-9][0-9]{0,8}) ([a-f0-9]{64}) ([a-f0-9]{40}) ([a-f0-9]{64}) ([a-f0-9]{64}) (sealed-v1)\n\n([^\x00-\x08\x0b\x0c\x0e-\x1f]{1,3000})', c.get('body', ''))
+    m = re.fullmatch(r'/sangil-watch-publish approve ([A-Za-z0-9_-]{1,100}) ([a-f0-9]{40}) ([1-9][0-9]{0,8}) ([a-f0-9]{64}) ([a-f0-9]{40}) ([a-f0-9]{64}) ([a-f0-9]{64}) (sealed-v1|github-draft-v1:[1-9][0-9]{0,19}:[1-9][0-9]{0,19})\n\n([^\x00-\x08\x0b\x0c\x0e-\x1f]{1,3000})', canonical_lines(c.get('body', '')))
     if not m or 'SANGIL_WATCH_MANIFEST_V1' in m[9]:
         raise ValueError('Exact candidate, baseline and release notes approval required')
     return dict(requestId=m[1], snapshotSha=m[2], versionCode=int(m[3]), apkSha256=m[4],
@@ -63,7 +68,7 @@ def verify_native_apk(path, sdk):
     if not m:
         raise ValueError('Verified APK metadata missing')
     abis = re.findall(r"'([^']+)'", next((line for line in metadata.splitlines() if line.startswith('native-code:')), ''))
-    required_watch = re.search(r"^uses-feature: name='android.hardware.type.watch'\s*$", metadata, re.M)
+    required_watch = re.search(r"^[ \t]*uses-feature: name='android.hardware.type.watch'[ \t]*\r?$", metadata, re.M)
     launch = re.search(r"^launchable-activity: name='([^']+)'", metadata, re.M)
     if not required_watch or not launch or launch[1] != ACTIVITY:
         raise ValueError('Required watch hardware and exact watch launcher required')
@@ -158,7 +163,7 @@ def watch_inventory(rows):
             raise ValueError('Existing watch draft/release needs manual reconciliation')
         version=tag.removeprefix('wear-v')
         if not re.fullmatch(r'\d+\.\d+\.\d+-dev',version): raise ValueError('Watch tag rejected')
-        blocks=re.findall(r'<!-- '+MARKER+r'\n([^\n]+)\n-->',r.get('body',''))
+        blocks=re.findall(r'<!-- '+MARKER+r'\n([^\n]+)\n-->',canonical_lines(r.get('body','')))
         if len(blocks)!=1: raise ValueError('Exactly one watch manifest required')
         m=json.loads(blocks[0]); assets=r.get('assets',[])
         if (not isinstance(m,dict) or m.get('schema')!=1 or m.get('appId')!='sangil-wear'
@@ -246,7 +251,7 @@ def publish(event, request, issue_number, root, verify_apk, read=api, run_gh=gh,
     draft=read(PREFIX+'/releases/'+str(rid))
     assets=draft.get('assets',[])
     if (draft.get('draft') is not True or draft.get('prerelease') is not True or draft.get('tag_name')!=tag
-        or draft.get('body')!=body or len(assets)!=1 or assets[0].get('name')!=name
+        or canonical_lines(draft.get('body'))!=body or len(assets)!=1 or assets[0].get('name')!=name
         or assets[0].get('size')!=candidate['sizeBytes'] or assets[0].get('digest')!='sha256:'+candidate['sha256']):
         raise ValueError('Watch draft asset mismatch; no retry')
     guard()
@@ -256,7 +261,7 @@ def publish(event, request, issue_number, root, verify_apk, read=api, run_gh=gh,
     public=read(PREFIX+'/releases/'+str(rid))
     # Also verifies the published watch body, APK identity and public asset URL.
     watch_inventory([public])
-    if (public.get('tag_name')!=tag or public.get('body')!=body or
+    if (public.get('tag_name')!=tag or canonical_lines(public.get('body'))!=body or
         any(public['assets'][0].get(k)!=assets[0].get(k) for k in ('id','name','size','digest'))):
         raise ValueError('Watch publication outcome requires review')
     guard()  # Phone latest.json and /releases/latest must still be unchanged.
@@ -279,6 +284,57 @@ def receive_file_url(event, request, issue_number):
     return file_url(payload['url'])
 
 
+def private_bundle_body(request):
+    """Non-secret metadata for one owner-staged PC bundle in this same repository."""
+    return 'SANGIL_PRIVATE_WATCH_BUNDLE_V1\n' + json.dumps(dict(
+        appId='sangil-wear', buildOrigin='OWNER_APPROVED_WINDOWS_PC',
+        requestId=request['requestId'], sourceSha=request['snapshotSha'],
+        apkSha256=request['apkSha256'], outerSha256=request['outerSha256']), sort_keys=True)
+
+
+def download_github_asset(asset_id, target):
+    """Authenticated same-repository asset read; never accepts an arbitrary URL."""
+    if type(asset_id) is not int or asset_id < 1:
+        raise ValueError('Exact native asset ID required')
+    with target.open('xb') as output:
+        result = subprocess.run(['gh', 'api', '--method', 'GET',
+            PREFIX+'/releases/assets/'+str(asset_id), '-H', 'Accept: application/octet-stream'],
+            stdout=output, stderr=subprocess.PIPE, timeout=120)
+    if result.returncode:
+        raise ValueError('Private same-repository asset download stopped; no retry')
+
+
+def receive_github_draft(request, root, read=api, download=download_github_asset):
+    """Read only an exact owner-staged private draft, bound to the original approval."""
+    match = re.fullmatch(r'github-draft-v1:([1-9][0-9]{0,19}):([1-9][0-9]{0,19})', request['delivery'])
+    if not match:
+        raise ValueError('Exact private draft delivery required')
+    release_id, asset_id = map(int, match.groups())
+    release = read(PREFIX+'/releases/'+str(release_id))
+    assets = release.get('assets', [])
+    if (type(release.get('id')) is not int or release['id'] != release_id or release.get('draft') is not True
+            or release.get('prerelease') is not True
+            or release.get('tag_name') != 'private-watch-candidate-'+request['requestId']
+            or release.get('author', {}).get('login') != 'gy7604'
+            or canonical_lines(release.get('body')) != private_bundle_body(request)
+            or not isinstance(assets, list) or len(assets) != 1):
+        raise ValueError('Private candidate draft identity mismatch')
+    asset = assets[0]
+    if (type(asset.get('id')) is not int or asset['id'] != asset_id
+            or asset.get('name') != 'approved.zip' or asset.get('state') != 'uploaded'
+            or type(asset.get('size')) is not int or not 0 < asset['size'] <= MAX
+            or asset.get('digest') != 'sha256:'+request['outerSha256']
+            or asset.get('url') != 'https://api.github.com/'+PREFIX+'/releases/assets/'+str(asset_id)):
+        raise ValueError('Private candidate asset mismatch')
+    target = Path(root)/'approved.zip'
+    if not Path(root).is_dir() or target.exists() or target.is_symlink():
+        raise ValueError('New isolated candidate destination required')
+    download(asset_id, target)
+    if (not target.is_file() or target.is_symlink() or target.stat().st_size != asset['size']
+            or hashlib.sha256(target.read_bytes()).hexdigest() != request['outerSha256']):
+        raise ValueError('Private candidate bytes mismatch')
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--event', required=True)
@@ -292,15 +348,18 @@ def main():
     request = validate_event(event, int(time.time()), number)
     with tempfile.TemporaryDirectory(prefix='approved-sangil-watch-publication-') as folder:
         root = Path(folder)
-        private_file_url = receive_file_url(event, request, number)
-        with urllib.request.build_opener(NoRedirect).open(urllib.request.Request(private_file_url,
-             headers={'User-Agent': 'OwnerApprovedSangilPublisher/1'}), timeout=60) as response, (root / 'approved.zip').open('xb') as out:
-            size = 0
-            while chunk := response.read(1024 * 1024):
-                size += len(chunk)
-                if size > MAX:
-                    raise ValueError('Bounded approved download required')
-                out.write(chunk)
+        if request['delivery'].startswith('github-draft-v1:'):
+            receive_github_draft(request, root)
+        else:
+            private_file_url = receive_file_url(event, request, number)
+            with urllib.request.build_opener(NoRedirect).open(urllib.request.Request(private_file_url,
+                 headers={'User-Agent': 'OwnerApprovedSangilPublisher/1'}), timeout=60) as response, (root / 'approved.zip').open('xb') as out:
+                size = 0
+                while chunk := response.read(1024 * 1024):
+                    size += len(chunk)
+                    if size > MAX:
+                        raise ValueError('Bounded approved download required')
+                    out.write(chunk)
         print(json.dumps(publish(event, request, number, root,
               lambda path: verify_native_apk(path, os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT', '')))))
 
@@ -312,4 +371,3 @@ if __name__ == '__main__':
         import sys
         sys.stderr.write('Approved Sangil watch publication stopped. Inspect the exact request/draft/feed; no automatic retry.\n')
         sys.exit(1)
-
